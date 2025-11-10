@@ -34,43 +34,107 @@ body {
 }
 
 /* ===== NAVBAR ===== */
+/* ✅ Navbar full-width clean */
+/* Fix brand alignment */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;           /* space between logo and text */
+}
+
+/* Make text (SmartTask + subtitle) stay vertically stacked */
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+/* Improve topbar spacing */
+/* Fix brand alignment */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;           /* space between logo and text */
+}
+
+/* Make text (SmartTask + subtitle) stay vertically stacked */
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+/* Improve topbar spacing */
 .topbar {
-  background: rgba(26, 0, 50, 0.85);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--purple-dark);
+  width: 100%;
+  background: #2a003e;
+  border-bottom: 2px solid #6a1bc4;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 28px;
-  color: var(--text-white);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+
+  padding: 20px 40px;
+  margin: 0;
+  height: 90px;
+  box-sizing: border-box;
 }
 
-.brand {
-  display: flex;
-  flex-direction: column;
-}
 
+
+
+/* Brand Section */
 .brand-title {
-  font-size: 22px;
-  font-weight: 700;
-  background: linear-gradient(90deg, var(--purple-light), var(--purple));
+  font-size: 24px;
+  font-weight: 800;
+  background: linear-gradient(90deg, #bb86fc, #8f3aff);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  letter-spacing: 0.5px;
 }
 
 .brand-sub {
-  font-size: 13px;
-  color: var(--text-white);
+  font-size: 14px;
+  color: #ffffff;
   opacity: 0.85;
 }
 
+/* ✅ Navbar buttons spacing */
 .top-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 18px;
 }
+
+/* ✅ Clean button styles */
+.top-actions button {
+  background: transparent;
+  border: none;
+  color: #ffffff !important;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.25s ease;
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+/* Hover effect */
+.top-actions button:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* ✅ Logout button special styling */
+#logoutBtn {
+  background: #491f8e !important;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-weight: 600;
+}
+
+#logoutBtn:hover {
+  background: #622abc  !important;
+}
+
 
 /* ===== ALL TEXT & LINKS ===== */
 h1, h2, h3, h4, h5, h6, p, span, label, a, li, th, td, input, select, button {
@@ -155,14 +219,18 @@ button {
 /* ===== WELCOME / SIGNUP CARD ===== */
 .auth-card {
   width: 100%;
-  max-width: 380px; /* ✅ smaller width */
+  max-width: 450px; /* ✅ smaller width */
   padding: 1rem 1.5rem; /* ✅ tighter spacing */
   margin: 50px auto;
   border-radius: var(--radius);
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border);
   box-shadow: 0 0 20px rgba(168, 85, 247, 0.1);
-  text-align: center;
+  /* text-align: center; */
+}
+
+.form-label{
+  text-align: left;
 }
 
 /* ===== FORMS ===== */
@@ -271,3 +339,80 @@ button {
     padding: 1rem;
   }
 }
+
+/* --- Dashboard Title/Subtitle --- */
+.dashboard-title {
+  font-size: 38px;
+  font-weight: 700;
+  margin-bottom: 0;
+}
+
+.dashboard-sub {
+  opacity: 0.85;
+  margin-bottom: 25px;
+  font-size: 16px;
+}
+
+/* --- Dashboard Stats Cards --- */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 22px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  background: linear-gradient(145deg, #2b0d42, #1a032e);
+  border-radius: 16px;
+  padding: 18px 22px;
+  color: white;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+}
+
+.stat-card h3 {
+  font-size: 16px;
+  font-weight: 500;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.stat-number {
+  font-size: 35px;
+  font-weight: 700;
+  margin-top: 6px;
+  display: block;
+}
+
+.stat-card.pending {
+  border: none;
+}
+
+/* --- Charts Section --- */
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+}
+
+.chart-card {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 18px;
+  padding: 22px;
+  color: white;
+  box-shadow: 0 3px 16px rgba(0,0,0,0.25);
+}
+
+.chart-card h4 {
+  margin-bottom: 12px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+
+

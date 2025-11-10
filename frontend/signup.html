@@ -9,7 +9,7 @@
 </head>
 <body>
   <div class="app-bg">
-    <header class="topbar container-lg">
+    <header class="topbar">
       <div class="brand">
         <div class="brand-text">
           <div class="brand-title">SmartTask</div>
@@ -24,30 +24,30 @@
     <main class="container-lg page-center">
       <div class="card card-glass auth-card">
         <div class="card-body">
-          <h2 class="mb-3">Create an account</h2>
-          <p class="muted mb-3">Join your team — pick a role and get started.</p>
+          <h2 class="mb-3" style="text-align: center;">Create an account</h2>
+          <p class="muted mb-3" style="text-align: center;">Join your team — pick a role and get started.</p><br>
 
           <form id="signupForm">
             <div class="mb-3">
-              <label class="form-label">Full name</label>
-              <input id="name" type="text" class="form-control input-dark" placeholder="Your name" required />
+              <!-- <label class="form-label">Full name</label> -->
+              <input id="name" type="text" class="form-control input-dark" placeholder="full name" required  style="background-color: rgba(59, 16, 100, 0.45); color: white;" />
             </div>
             <div class="mb-3">
-              <label class="form-label">Email</label>
-              <input id="email" type="email" class="form-control input-dark" placeholder="you@company.com" required />
+              <!-- <label class="form-label">Email</label> -->
+              <input id="email" type="email" class="form-control input-dark" placeholder="email" required  style="background-color: rgba(59, 16, 100, 0.45); color: white;" />
             </div>
             <div class="mb-3">
-              <label class="form-label">Password</label>
-              <input id="password" type="password" class="form-control input-dark" placeholder="Choose a secure password" required />
+              <!-- <label class="form-label">Password</label> -->
+              <input id="password" type="password" class="form-control input-dark" placeholder="password" required  style="background-color: rgba(59, 16, 100, 0.45); color: white;" />
             </div>
             <div class="mb-3">
-              <label class="form-label">Role</label>
-              <select id="role" class="form-select input-dark">
-                <option value="member">Member</option>
-                <option value="manager">Manager</option>
-                <option value="admin">Admin</option>
+              <!-- <label class="form-label">Role</label> -->
+              <select id="role" class="form-select input-dark"  style="background-color: rgba(59, 16, 100, 0.45); color: white;">
+                <option value="member" style="color: black;">Member</option>
+                <option value="manager" style="color: black;">Manager</option>
               </select>
             </div>
+            <br>
 
             <div class="d-grid">
               <button type="submit" class="btn btn-primary btn-lg">Create account</button>
@@ -55,14 +55,14 @@
           </form>
 
           <div class="mt-4 text-center small muted">
-            Already registered? <button class="btn btn-link-small" onclick="goTo('index.html')">Sign in</button>
+            Already registered? <button class="btn btn-link-small" onclick="goTo('index.html')">sign in</button>
           </div>
         </div>
       </div>
     </main>
 
     <footer class="container-lg footer muted small">
-      <div>Designed with a dark modern look • Local demo data only</div>
+      <div>You're one step away from smarter project management © 2025 SmartTask.</div>
     </footer>
   </div>
 

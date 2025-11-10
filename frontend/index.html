@@ -14,7 +14,7 @@
 <body>
 
   <div class="app-bg">
-    <header class="topbar container-lg">
+    <header class="topbar">
       <div class="brand">
         <img src="" alt="" class="logo" aria-hidden="true">
         <div class="brand-text">
@@ -30,41 +30,35 @@
     <main class="container-lg page-center">
       <div class="card card-glass auth-card">
         <div class="card-body">
-          <h2 class="mb-3">Welcome back</h2>
-          <p class="muted mb-3">Sign in to access your projects and tasks.</p>
+          <h2 class="mb-3" style="text-align: center;">Welcome back</h2>
+          <p class="muted mb-3" style="text-align: center;">Sign in to access your projects and tasks.</p>
+          <br>
 
           <form id="loginForm" class="mb-3">
             <div class="mb-3">
               <label class="form-label">Email</label>
-              <input id="email" type="email" class="form-control input-dark" placeholder="you@company.com" required />
+              <input id="email" type="email" class="form-control input-dark" placeholder="email" required style="background-color: rgba(59, 16, 100, 0.45); color: white;" />
             </div>
             <div class="mb-3">
-              <label class="form-label">Password</label>
-              <input id="password" type="password" class="form-control input-dark" placeholder="••••••••" required />
+              <label class="form-label"> Password</label>
+              <input id="password" type="password" class="form-control input-dark" placeholder="password" required  style="background-color: rgba(59, 16, 100, 0.45); color: white;" />
             </div>
-
+<br>
             <div class="d-grid mb-2">
               <button type="submit" class="btn btn-primary btn-lg">Sign in</button>
             </div>
-
-            <div class="text-center muted small">Or continue with demo account</div>
           </form>
 
-          <div class="d-flex gap-2 justify-content-center mt-3">
-            <button class="btn btn-outline btn-sm" onclick="autoFillDemo('manager@demo')">Manager Demo</button>
-            <button class="btn btn-outline btn-sm" onclick="autoFillDemo('member@demo')">Member Demo</button>
-          </div>
-
           <div class="mt-4 text-center small muted">
-            <span>Don't have an account? </span>
-            <button class="btn btn-link-small" onclick="goTo('signup.html')">Create one</button>
+            <span>Don't have an account?</span>
+            <button class="btn btn-link-small" onclick="goTo('signup.html')">create one</button>
           </div>
         </div>
       </div>
     </main>
 
     <footer class="container-lg footer muted small">
-      <div>Built for college project • Use demo logins or create an account</div>
+      <div>© 2025 SmartTask — All Rights Reserved</div>
     </footer>
   </div>
 

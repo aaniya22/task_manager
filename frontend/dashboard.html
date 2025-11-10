@@ -9,7 +9,7 @@
 </head>
 <body>
   <div class="app-bg">
-    <header class="topbar container-lg">
+    <header class="topbar">
       <div class="brand">
         <div class="brand-text">
           <div class="brand-title">SmartTask</div>
@@ -24,41 +24,34 @@
         <button id="logoutBtn" class="btn btn-danger">Logout</button>
       </div>
     </header>
-
+<br>
     <main class="container-lg my-4">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-          <h1 class="page-title">Overview</h1>
-          <div class="muted">Quick snapshot of your projects and tasks</div>
-        </div>
-      </div>
+      <h1 class="dashboard-title">Progress Overview</h1> <br>
+<p class="dashboard-sub">Current status of projects and tasks at a glance.</p>
+<br>
 
-      <div class="row g-3 mb-4">
-        <div class="col-md-3">
-          <div class="card card-glass p-3">
-            <div class="muted small">Total Projects</div>
-            <div id="totalProjects" class="h3">0</div>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="card card-glass p-3">
-            <div class="muted small">Total Tasks</div>
-            <div id="totalTasks" class="h3">0</div>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="card card-glass p-3">
-            <div class="muted small">Completed</div>
-            <div id="completedTasks" class="h3">0</div>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="card card-glass p-3">
-            <div class="muted small">Pending</div>
-            <div id="pendingTasks" class="h3">0</div>
-          </div>
-        </div>
-      </div>
+<div class="stats-grid">
+  <div class="stat-card">
+    <h3>Total Projects</h3>
+    <span class="stat-number" id="totalProjects">0</span>
+  </div>
+
+  <div class="stat-card">
+    <h3>Total Tasks</h3>
+    <span class="stat-number" id="totalTasks">0</span>
+  </div>
+
+  <div class="stat-card">
+    <h3>Completed</h3>
+    <span class="stat-number" id="completedTasks">0</span>
+  </div>
+
+  <div class="stat-card pending">
+    <h3>Pending</h3>
+    <span class="stat-number" id="pendingTasks">0</span>
+  </div>
+</div>
+
 
       <div class="row g-4">
         <div class="col-md-6">
@@ -77,7 +70,7 @@
     </main>
 
     <footer class="container-lg footer muted small">
-      <div>SmartTask • Dark theme • Local demo data</div>
+      <div>SmartTask • overview of your ongoing projects and task progress</div>
     </footer>
   </div>
 
