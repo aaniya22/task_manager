@@ -1,4 +1,5 @@
-// tasks.js — Manage tasks (with role-based permissions)
+// tasks.js — Manage tasks (with role-based permissions & filtering)
+
 document.addEventListener('DOMContentLoaded', () => {
   const user = requireAuth(); // Ensure someone is logged in
   if (!user) return;
@@ -8,9 +9,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const addTaskContainer = document.getElementById('addTaskContainer');
 
   // Hide "Add Task" button for members
-  if (user.role === 'member' && addTaskContainer) {
-    addTaskContainer.style.display = 'none';
+  // Hide Add Task button for Member role users
+if (user.role === "member") {
+  if (addTaskContainer) {
+    addTaskContainer.style.display = "none";
   }
+
+  // Also hide modal trigger button if user somehow accesses it
+  const addTaskBtn = document.getElementById("addTaskBtn");
+  if (addTaskBtn) {
+    addTaskBtn.remove(); // completely removes the button instead of hiding
+  }
+}
+
 
   // ===== Render Tasks =====
   function render() {
@@ -24,6 +35,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     tasks.forEach(t => {
       const tr = document.createElement('tr');
+
+      let actionButtons = "";
+
+      // ✅ Member can change status ONLY if assigned to them
+      if (user.role === "member" && t.assignee === user.email) {
+        actionButtons = `<button class="btn btn-sm btn-success" data-id="${t.id}" data-action="toggle">Next</button>`;
+      }
+
+      // ✅ Manager/Admin -> Full control
+      if (user.role === "manager" || user.role === "admin") {
+        actionButtons = `
+          <button class="btn btn-sm btn-success me-1" data-id="${t.id}" data-action="toggle">Next</button>
+          <button class="btn btn-sm btn-primary me-1" data-id="${t.id}" data-action="edit">Edit</button>
+          <button class="btn btn-sm btn-danger" data-id="${t.id}" data-action="delete">Delete</button>
+        `;
+      }
+
       tr.innerHTML = `
         <td>${t.title}</td>
         <td>${t.project || '-'}</td>
@@ -31,18 +59,9 @@ document.addEventListener('DOMContentLoaded', () => {
         <td>${t.priority}</td>
         <td>${t.deadline || '-'}</td>
         <td>${t.status}</td>
-        <td>
-          ${user.role === 'manager' || user.role === 'admin'
-            ? `<button class="btn btn-sm btn-primary me-1" data-id="${t.id}" data-action="edit">Edit</button>`
-            : ''
-          }
-          <button class="btn btn-sm btn-success me-1" data-id="${t.id}" data-action="toggle">Next</button>
-          ${user.role !== 'member'
-            ? `<button class="btn btn-sm btn-danger" data-id="${t.id}" data-action="delete">Delete</button>`
-            : ''
-          }
-        </td>
+        <td>${actionButtons}</td>
       `;
+
       tasksTable.appendChild(tr);
     });
   }
@@ -92,6 +111,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Toggle task status ---
     if (action === 'toggle') {
+      // MEMBER cannot toggle if not assigned to him
+      if (user.role === "member" && tasks[idx].assignee !== user.email) {
+        return alert("You can only change status of tasks assigned to you.");
+      }
+
       const arr = ['To-Do', 'In Progress', 'Done'];
       const cur = tasks[idx].status;
       tasks[idx].status = arr[(arr.indexOf(cur) + 1) % arr.length];
@@ -101,23 +125,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Edit task (Managers/Admins only) ---
     else if (action === 'edit') {
-  const currentTask = tasks[idx];
+      if (user.role === "member") return; // just in case
 
-  // Fill modal fields
-  document.getElementById('editTaskTitle').value = currentTask.title;
-  document.getElementById('editTaskProject').value = currentTask.project || '';
+      const currentTask = tasks[idx];
+      document.getElementById('editTaskTitle').value = currentTask.title;
+      document.getElementById('editTaskProject').value = currentTask.project || '';
 
-  // Store which task is being edited
-  localStorage.setItem('editingTaskId', id);
+      localStorage.setItem('editingTaskId', id);
 
-  // Show the modal
-  const editModal = new bootstrap.Modal(document.getElementById('editTaskModal'));
-  editModal.show();
-}
-
+      const editModal = new bootstrap.Modal(document.getElementById('editTaskModal'));
+      editModal.show();
+    }
 
     // --- Delete task (not for members) ---
     else if (action === 'delete') {
+      if (user.role === "member") return;
+
       if (!confirm('Delete this task?')) return;
       tasks = tasks.filter(t => t.id !== id);
       localStorage.setItem('tasks', JSON.stringify(tasks));
@@ -125,31 +148,46 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // ===== Initial Render =====
-  // ===== Handle Edit Form Save =====
-const editForm = document.getElementById('editTaskForm');
-if (editForm) {
-  editForm.addEventListener('submit', e => {
-    e.preventDefault();
-    const id = Number(localStorage.getItem('editingTaskId'));
-    if (!id) return;
+  // ===== Edit Task Save =====
+  const editForm = document.getElementById('editTaskForm');
+  if (editForm) {
+    editForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const id = Number(localStorage.getItem('editingTaskId'));
+      if (!id) return;
 
-    let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-    const idx = tasks.findIndex(t => t.id === id);
-    if (idx === -1) return;
+      let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+      const idx = tasks.findIndex(t => t.id === id);
+      if (idx === -1) return;
 
-    tasks[idx].title = document.getElementById('editTaskTitle').value.trim();
-    tasks[idx].project = document.getElementById('editTaskProject').value.trim();
+      tasks[idx].title = document.getElementById('editTaskTitle').value.trim();
+      tasks[idx].project = document.getElementById('editTaskProject').value.trim();
 
-    localStorage.setItem('tasks', JSON.stringify(tasks));
+      localStorage.setItem('tasks', JSON.stringify(tasks));
 
-    const modalEl = document.getElementById('editTaskModal');
-    const modal = bootstrap.Modal.getInstance(modalEl);
-    modal.hide();
+      const modalEl = document.getElementById('editTaskModal');
+      const modal = bootstrap.Modal.getInstance(modalEl);
+      modal.hide();
 
-    render();
-  });
-}
+      render();
+    });
+  }
 
   render();
 });
+
+// ===== Filtering (Search + Priority filter) =====
+document.getElementById("searchTask").addEventListener("input", filterTasks);
+document.getElementById("priorityFilter").addEventListener("change", filterTasks);
+
+function filterTasks() {
+  const search = document.getElementById("searchTask").value.toLowerCase();
+  const priority = document.getElementById("priorityFilter").value.toLowerCase();
+
+  document.querySelectorAll("#tasksTable tr").forEach(row => {
+    const matchesSearch = row.children[0].innerText.toLowerCase().includes(search);
+    const matchesPriority = !priority || row.children[3].innerText.toLowerCase() === priority;
+
+    row.style.display = matchesSearch && matchesPriority ? "" : "none";
+  });
+}
