@@ -1,45 +1,91 @@
-// auth.js - signup & login logic (vanilla localStorage)
-document.addEventListener('DOMContentLoaded', ()=>{
+// =======================
+// auth.js — Handles Signup & Login
+// =======================
 
-  // show nav user on pages that have it
-  const navUserEls = document.querySelectorAll('#nav-user');
-  const cu = JSON.parse(localStorage.getItem('currentUser') || 'null');
-  if(navUserEls && cu){
-    navUserEls.forEach(el => el.textContent = cu.name + ' • ' + cu.role);
+// const API_BASE = "http://localhost:4000";
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  // =======================
+  // Show logged-in user name if available
+  // =======================
+  const navUserEls = document.querySelectorAll("#nav-user");
+  const cu = JSON.parse(localStorage.getItem("currentUser") || "null");
+  if (navUserEls && cu) {
+    navUserEls.forEach(el => (el.textContent = cu.name + " • " + cu.role));
   }
 
-  // Signup
-  const signupForm = document.getElementById('signupForm');
-  if(signupForm){
-    signupForm.addEventListener('submit', e=>{
-      e.preventDefault();
-      const name = document.getElementById('name').value.trim();
-      const email = document.getElementById('email').value.trim().toLowerCase();
-      const password = document.getElementById('password').value;
-      const role = document.getElementById('role').value;
+  // =======================
+  // SIGNUP
+  // =======================
+  const signupForm = document.getElementById("signupForm");
+  if (signupForm) {
+    signupForm.addEventListener("submit", async e => {
+      e.preventDefault(); // ✅ stops page from reloading
 
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      if(users.find(u=>u.email === email)){ alert('Email already used'); return; }
-      const id = users.length ? users[users.length-1].id + 1 : 1;
-      users.push({id, name, email, password, role});
-      localStorage.setItem('users', JSON.stringify(users));
-      localStorage.setItem('currentUser', JSON.stringify({id, name, email, role}));
-      goTo('dashboard.html');
+      const name = document.getElementById("name").value.trim();
+      const email = document.getElementById("email").value.trim().toLowerCase();
+      const password = document.getElementById("password").value;
+      const role = document.getElementById("role").value;
+
+      try {
+        const res = await fetch(API_BASE + "/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, password, role })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          alert(data.message || "Signup failed");
+          return;
+        }
+
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("currentUser", JSON.stringify(data.user));
+
+        window.location.href = "dashboard.html";
+      } catch (err) {
+        console.error("Signup error:", err);
+        alert("Network error. Please try again.");
+      }
     });
   }
 
-  // Login
-  const loginForm = document.getElementById('loginForm');
-  if(loginForm){
-    loginForm.addEventListener('submit', e=>{
-      e.preventDefault();
-      const email = document.getElementById('email').value.trim().toLowerCase();
-      const password = document.getElementById('password').value;
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const user = users.find(u => u.email === email && u.password === password);
-      if(!user){ alert('Invalid credentials — demo: manager@demo / member@demo (pass demo)'); return; }
-      localStorage.setItem('currentUser', JSON.stringify({id:user.id, name:user.name, email:user.email, role:user.role}));
-      goTo('dashboard.html');
+  // =======================
+  // LOGIN
+  // =======================
+  const loginForm = document.getElementById("loginForm");
+  if (loginForm) {
+    loginForm.addEventListener("submit", async e => {
+      e.preventDefault(); // ✅ stops page reload
+
+      const email = document.getElementById("email").value.trim().toLowerCase();
+      const password = document.getElementById("password").value;
+
+      try {
+        const res = await fetch(API_BASE + "/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          alert(data.message || "Invalid credentials");
+          return;
+        }
+
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("currentUser", JSON.stringify(data.user));
+
+        window.location.href = "dashboard.html";
+      } catch (err) {
+        console.error("Login error:", err);
+        alert("Network error. Please try again.");
+      }
     });
   }
 });

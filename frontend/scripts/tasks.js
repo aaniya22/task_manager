@@ -1,193 +1,264 @@
-// tasks.js — Manage tasks (with role-based permissions & filtering)
+// =======================
+// tasks.js — Fully Connected to Backend
+// =======================
 
-document.addEventListener('DOMContentLoaded', () => {
-  const user = requireAuth(); // Ensure someone is logged in
+document.addEventListener("DOMContentLoaded", () => {
+  const user = requireAuth();
+  if (user) {
+  const el = document.getElementById("nav-user") || document.getElementById("userInfo");
+  if (el) el.textContent = `${user.name} • ${user.role}`;
+}
   if (!user) return;
 
-  const tasksTable = document.getElementById('tasksTable');
-  const taskForm = document.getElementById('taskForm');
-  const addTaskContainer = document.getElementById('addTaskContainer');
+  const token = localStorage.getItem("token");
 
-  // Hide "Add Task" button for members
-  // Hide Add Task button for Member role users
-if (user.role === "member") {
-  if (addTaskContainer) {
-    addTaskContainer.style.display = "none";
-  }
-
-  // Also hide modal trigger button if user somehow accesses it
+  const tasksTable = document.getElementById("tasksTable");
+  const taskForm = document.getElementById("taskForm");
   const addTaskBtn = document.getElementById("addTaskBtn");
-  if (addTaskBtn) {
-    addTaskBtn.remove(); // completely removes the button instead of hiding
+  const searchInput = document.getElementById("searchTask");
+  const priorityFilter = document.getElementById("priorityFilter");
+  const projectSelect = document.getElementById("taskProject");
+  const editForm = document.getElementById("editTaskForm");
+
+  let editingTaskId = null;
+
+  // Hide Add Task button from members
+  if (user.role === "member" && addTaskBtn) {
+    addTaskBtn.style.display = "none";
   }
-}
 
+  // ============================
+  // LOAD PROJECTS FOR CREATE DROPDOWN
+  // ============================
+  async function loadProjectsForDropdown() {
+    try {
+      const res = await fetch(`${API_BASE}/api/projects`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
-  // ===== Render Tasks =====
-  function render() {
-    const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-    tasksTable.innerHTML = '';
-
-    if (tasks.length === 0) {
-      tasksTable.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">No tasks yet.</td></tr>`;
-      return;
+      const data = await res.json();
+      projectSelect.innerHTML = "";
+      data.projects.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p._id;
+        opt.textContent = p.title;
+        projectSelect.appendChild(opt);
+      });
+    } catch (err) {
+      console.error("Project dropdown failed:", err);
     }
+  }
 
-    tasks.forEach(t => {
-      const tr = document.createElement('tr');
+  // ============================
+  // LOAD PROJECTS FOR EDIT DROPDOWN
+  // ============================
+  async function loadProjectsForEditDropdown(selectedProjectId = "") {
+    try {
+      const res = await fetch(`${API_BASE}/api/projects`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
-      let actionButtons = "";
+      const data = await res.json();
+      const editSelect = document.getElementById("editTaskProject");
+      editSelect.innerHTML = "";
 
-      // ✅ Member can change status ONLY if assigned to them
-      if (user.role === "member" && t.assignee === user.email) {
-        actionButtons = `<button class="btn btn-sm btn-success" data-id="${t.id}" data-action="toggle">Next</button>`;
-      }
+      data.projects.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p._id;
+        opt.textContent = p.title;
+        if (p._id === selectedProjectId) opt.selected = true;
+        editSelect.appendChild(opt);
+      });
+    } catch (err) {
+      console.error("Edit dropdown failed:", err);
+    }
+  }
 
-      // ✅ Manager/Admin -> Full control
-      if (user.role === "manager" || user.role === "admin") {
-        actionButtons = `
-          <button class="btn btn-sm btn-success me-1" data-id="${t.id}" data-action="toggle">Next</button>
-          <button class="btn btn-sm btn-primary me-1" data-id="${t.id}" data-action="edit">Edit</button>
-          <button class="btn btn-sm btn-danger" data-id="${t.id}" data-action="delete">Delete</button>
+  // ============================
+  // LOAD + RENDER TASKS
+  // ============================
+  async function loadTasks() {
+    const res = await fetch(`${API_BASE}/api/tasks`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const data = await res.json();
+    renderTasks(data.tasks || []);
+  }
+
+  function renderTasks(tasks) {
+    tasksTable.innerHTML = "";
+    const search = searchInput.value.toLowerCase();
+    const priority = priorityFilter.value.toLowerCase();
+
+    tasks
+      .filter(t => t.title.toLowerCase().includes(search))
+      .filter(t => !priority || t.priority.toLowerCase() === priority)
+      .forEach(t => {
+        const tr = document.createElement("tr");
+        const projectName = t.projectId?.title || "-";
+
+        let actions = "";
+        if (user.role === "member") {
+          if (t.assignee === user.email) {
+            actions = `<button class="btn btn-sm btn-success" data-id="${t._id}" data-action="toggle">Next</button>`;
+          }
+        } else {
+          actions = `
+            <button class="btn btn-sm btn-success me-1" data-id="${t._id}" data-action="toggle">Next</button>
+            <button class="btn btn-sm btn-primary me-1" data-id="${t._id}" data-action="edit">Edit</button>
+            <button class="btn btn-sm btn-danger" data-id="${t._id}" data-action="delete">Delete</button>
+          `;
+        }
+
+        tr.innerHTML = `
+          <td>${t.title}</td>
+          <td>${projectName}</td>
+          <td>${t.assignee || "-"}</td>
+          <td>${t.priority}</td>
+          <td>${t.deadline ? new Date(t.deadline).toLocaleDateString() : "-"}</td>
+          <td>${t.status}</td>
+          <td>${actions}</td>
         `;
-      }
 
-      tr.innerHTML = `
-        <td>${t.title}</td>
-        <td>${t.project || '-'}</td>
-        <td>${t.assignee || '-'}</td>
-        <td>${t.priority}</td>
-        <td>${t.deadline || '-'}</td>
-        <td>${t.status}</td>
-        <td>${actionButtons}</td>
-      `;
+        tasksTable.appendChild(tr);
+      });
+  }
 
-      tasksTable.appendChild(tr);
+  // ============================
+  // CREATE TASK
+  // ============================
+  taskForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const taskData = {
+      title: document.getElementById("taskTitle").value.trim(),
+      projectId: projectSelect.value,
+      assignee: document.getElementById("taskAssignee").value.trim(),
+      priority: document.getElementById("taskPriority").value,
+      deadline: document.getElementById("taskDeadline").value,
+      status: "To-Do"
+    };
+
+    await fetch(`${API_BASE}/api/tasks`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(taskData)
     });
-  }
 
-  // ===== Add New Task =====
-  function createTask(data) {
-    const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-    const id = tasks.length ? tasks[tasks.length - 1].id + 1 : 1;
-    tasks.push(Object.assign({ id, status: 'To-Do' }, data));
-    localStorage.setItem('tasks', JSON.stringify(tasks));
-    render();
-  }
+    document.querySelector("#taskModal .btn-close").click();
+    taskForm.reset();
+    loadTasks();
+  });
 
-  // ===== Form Submit =====
-  if (taskForm) {
-    taskForm.addEventListener('submit', e => {
-      e.preventDefault();
-
-      const title = document.getElementById('taskTitle').value.trim();
-      const project = document.getElementById('taskProject').value.trim();
-      const assignee = document.getElementById('taskAssignee').value.trim();
-      const priority = document.getElementById('taskPriority').value;
-      const deadline = document.getElementById('taskDeadline').value || null;
-
-      if (!title) return alert('Enter task title');
-      if (!project) return alert('Enter project name');
-
-      createTask({ title, project, assignee, priority, deadline });
-      taskForm.reset();
-
-      const modalEl = document.getElementById('taskModal');
-      const modal = bootstrap.Modal.getInstance(modalEl);
-      modal.hide();
-    });
-  }
-
-  // ===== Handle Actions =====
-  tasksTable.addEventListener('click', e => {
-    const btn = e.target.closest('button');
+  // ============================
+  // TABLE BUTTON HANDLING
+  // ============================
+  tasksTable.addEventListener("click", async (e) => {
+    const btn = e.target.closest("button");
     if (!btn) return;
 
-    const id = Number(btn.dataset.id);
+    const id = btn.dataset.id;
     const action = btn.dataset.action;
-    let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-    const idx = tasks.findIndex(t => t.id === id);
-    if (idx === -1) return;
 
-    // --- Toggle task status ---
-    if (action === 'toggle') {
-      // MEMBER cannot toggle if not assigned to him
-      if (user.role === "member" && tasks[idx].assignee !== user.email) {
-        return alert("You can only change status of tasks assigned to you.");
+    // TOGGLE STATUS
+    if (action === "toggle") {
+      const flow = ["To-Do", "In Progress", "Done"];
+      const current = e.target.closest("tr").children[5].innerText;
+      const next = flow[(flow.indexOf(current) + 1) % flow.length];
+
+      await fetch(`${API_BASE}/api/tasks/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: next })
+      });
+
+      return loadTasks();
+    }
+
+    // DELETE TASK
+    if (action === "delete") {
+      await fetch(`${API_BASE}/api/tasks/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      return loadTasks();
+    }
+
+    // EDIT TASK
+    if (action === "edit") {
+      editingTaskId = id;
+
+      const res = await fetch(`${API_BASE}/api/tasks/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (!res.ok) {
+        alert("Task does not exist on server anymore.");
+        return loadTasks();
       }
 
-      const arr = ['To-Do', 'In Progress', 'Done'];
-      const cur = tasks[idx].status;
-      tasks[idx].status = arr[(arr.indexOf(cur) + 1) % arr.length];
-      localStorage.setItem('tasks', JSON.stringify(tasks));
-      render();
-    }
+      const data = await res.json();
+      const t = data.task;
 
-    // --- Edit task (Managers/Admins only) ---
-    else if (action === 'edit') {
-      if (user.role === "member") return; // just in case
+      document.getElementById("editTaskTitle").value = t.title;
+      await loadProjectsForEditDropdown(t.projectId?._id || "");
+      document.getElementById("editTaskAssignee").value = t.assignee || "";
+      document.getElementById("editTaskPriority").value = t.priority;
+      document.getElementById("editTaskDeadline").value =
+        t.deadline ? t.deadline.split("T")[0] : "";
+      document.getElementById("editTaskStatus").value = t.status;
 
-      const currentTask = tasks[idx];
-      document.getElementById('editTaskTitle').value = currentTask.title;
-      document.getElementById('editTaskProject').value = currentTask.project || '';
 
-      localStorage.setItem('editingTaskId', id);
 
-      const editModal = new bootstrap.Modal(document.getElementById('editTaskModal'));
-      editModal.show();
-    }
-
-    // --- Delete task (not for members) ---
-    else if (action === 'delete') {
-      if (user.role === "member") return;
-
-      if (!confirm('Delete this task?')) return;
-      tasks = tasks.filter(t => t.id !== id);
-      localStorage.setItem('tasks', JSON.stringify(tasks));
-      render();
+      new bootstrap.Modal(document.getElementById("editTaskModal")).show();
     }
   });
 
-  // ===== Edit Task Save =====
-  const editForm = document.getElementById('editTaskForm');
-  if (editForm) {
-    editForm.addEventListener('submit', e => {
-      e.preventDefault();
-      const id = Number(localStorage.getItem('editingTaskId'));
-      if (!id) return;
+  // ============================
+  // SAVE EDITED TASK
+  // ============================
+  editForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-      let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-      const idx = tasks.findIndex(t => t.id === id);
-      if (idx === -1) return;
+    await fetch(`${API_BASE}/api/tasks/${editingTaskId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        title: document.getElementById("editTaskTitle").value.trim(),
+        projectId: document.getElementById("editTaskProject").value,
+        assignee: document.getElementById("editTaskAssignee").value.trim(),
+        priority: document.getElementById("editTaskPriority").value,
+        deadline: document.getElementById("editTaskDeadline").value,
+        status: document.getElementById("editTaskStatus").value
+      })
 
-      tasks[idx].title = document.getElementById('editTaskTitle').value.trim();
-      tasks[idx].project = document.getElementById('editTaskProject').value.trim();
-
-      localStorage.setItem('tasks', JSON.stringify(tasks));
-
-      const modalEl = document.getElementById('editTaskModal');
-      const modal = bootstrap.Modal.getInstance(modalEl);
-      modal.hide();
-
-      render();
     });
-  }
 
-  render();
-});
-
-// ===== Filtering (Search + Priority filter) =====
-document.getElementById("searchTask").addEventListener("input", filterTasks);
-document.getElementById("priorityFilter").addEventListener("change", filterTasks);
-
-function filterTasks() {
-  const search = document.getElementById("searchTask").value.toLowerCase();
-  const priority = document.getElementById("priorityFilter").value.toLowerCase();
-
-  document.querySelectorAll("#tasksTable tr").forEach(row => {
-    const matchesSearch = row.children[0].innerText.toLowerCase().includes(search);
-    const matchesPriority = !priority || row.children[3].innerText.toLowerCase() === priority;
-
-    row.style.display = matchesSearch && matchesPriority ? "" : "none";
+    editingTaskId = null;
+    document.querySelector("#editTaskModal .btn-close").click();
+    loadTasks();
   });
-}
+
+  // ============================
+  // SEARCH + FILTER
+  // ============================
+  searchInput.addEventListener("input", loadTasks);
+  priorityFilter.addEventListener("change", loadTasks);
+
+  // ============================
+  // INITIAL LOAD
+  // ============================
+  loadProjectsForDropdown();
+  loadTasks();
+});

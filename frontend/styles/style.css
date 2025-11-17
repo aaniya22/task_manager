@@ -548,6 +548,41 @@ html, body {
   margin-top: auto;
 }
 
+#statusChart {
+  transform: scale(0.75); /* smaller size = 75% */
+  transform-origin: center;
+}
+
+/* ==== Full purple modal background ==== */
+.modal-content {
+  background-color: #2b0a42 !important;   /* deep purple */
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+/* Header & Footer also purple */
+.modal-header,
+.modal-footer {
+  background-color: #2b0a42 !important;
+  border: none !important;
+}
+/* STATUS COLOR TAGS SAME AS CHART */
+.status-todo {
+  color: #A84CFF !important;
+  font-weight: 600;
+}
+
+.status-progress {
+  color: #8A6BFF !important;
+  font-weight: 600;
+}
+
+.status-done {
+  color: #4B3BFF !important;
+  font-weight: 600;
+}
+
+
+
 
 
 
